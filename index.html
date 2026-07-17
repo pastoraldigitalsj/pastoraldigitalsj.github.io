@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Misal - Parroquia Ntra. Sra. del Carmen</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        parroquia: {
+                            gold: '#B78C3D', 
+                            maroon: '#531717', 
+                            bg: '#F9F9F9', 
+                            text: '#333333', 
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+            background-color: theme('colors.parroquia.bg');
+        }
+        
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Colores para guiar la lectura fluida */
+        .rubrica {
+            color: #dc2626; /* Rojo litúrgico para instrucciones */
+            font-size: 0.85rem;
+            font-style: italic;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+        .respuesta {
+            font-weight: 700;
+            color: #111827; /* Negro fuerte para respuestas de la asamblea */
+        }
+        .sacerdote {
+            color: #374151; /* Gris oscuro para las partes del presbítero */
+        }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23531717%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right .7rem top 50%;
+            background-size: .65rem auto;
+        }
+    </style>
+</head>
+<body class="bg-parroquia-bg text-parroquia-text font-sans h-screen flex flex-col overflow-hidden">
+
+    <!-- ENCABEZADO FIJO -->
+    <header class="bg-parroquia-maroon shadow-md z-10 px-4 py-4 sticky top-0 flex flex-col items-center justify-center">
+        <h1 class="text-parroquia-gold font-bold text-[22px] text-center leading-tight uppercase tracking-wide">
+            Ntra. Sra. del Carmen
+        </h1>
+        <p class="text-sm text-white font-light tracking-widest mt-1">
+            San Jerónimo
+        </p>
+    </header>
+
+    <main class="flex-1 overflow-y-auto no-scrollbar pb-24 px-4 pt-4">
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA 1: MISAL                           -->
+        <!-- ========================================== -->
+        <section id="tab-misal" class="tab-content active max-w-2xl mx-auto">
+            
+            <!-- Selector mensual de fechas -->
+            <div class="bg-white rounded-xl p-4 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 mb-4">
+                <label for="fecha-misal" class="text-sm font-semibold text-parroquia-maroon flex items-center gap-2 mb-2">
+                    <i class="fa-regular fa-calendar-alt"></i> Misas del mes de Agosto:
+                </label>
+                <select id="fecha-misal" class="w-full bg-gray-50 border border-gray-200 text-gray-800 font-medium py-2.5 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-parroquia-gold/50 transition-all text-sm" onchange="actualizarMisa()">
+                    <!-- Se llena automáticamente con Javascript -->
+                </select>
+            </div>
+
+            <!-- Contenedor del Misal fluido sin títulos toscos -->
+            <div class="bg-white rounded-2xl p-5 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 mb-6">
+                
+                <!-- Título dinámico -->
+                <div class="text-center mb-6 pb-4">
+                    <h2 class="text-xl font-bold text-parroquia-maroon mb-2" id="titulo-misa">Cargando Misa...</h2>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-full border border-gray-200">
+                        <div id="color-liturgico" class="w-3 h-3 rounded-full bg-green-600 shadow-inner"></div>
+                        <span class="text-xs font-bold text-gray-600 uppercase tracking-wider" id="texto-color">Tiempo Ordinario</span>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO DEL MISAL EN UN SOLO FLUJO CONTINUO -->
+                <div class="space-y-6 text-[15.5px] leading-relaxed">
+                    
+                    <!-- Ritos Iniciales -->
+                    <div>
+                        <p class="rubrica">El sacerdote saluda al pueblo:</p>
+                        <p class="sacerdote">En el nombre del Padre, y del Hijo, y del Espíritu Santo.</p>
+                        <p class="respuesta mb-4">Amén.</p>
+                        
+                        <p class="sacerdote">El Señor esté con ustedes.</p>
+                        <p class="respuesta mb-5">Y con tu espíritu.</p>
+
+                        <p class="rubrica">Acto Penitencial:</p>
+                        <p class="sacerdote mb-1">Hermanos: para celebrar dignamente estos sagrados misterios, reconozcamos nuestros pecados.</p>
+                        <p class="respuesta mb-5">Yo confieso ante Dios todopoderoso, y ante ustedes, hermanos, que he pecado mucho de pensamiento, palabra, obra y omisión.<br><span class="rubrica font-normal">(Golpeándose el pecho)</span> Por mi culpa, por mi culpa, por mi gran culpa.<br>Por eso ruego a Santa María, siempre Virgen, a los ángeles, a los santos y a ustedes, hermanos, que intercedan por mí ante Dios, nuestro Señor.</p>
+
+                        <p class="sacerdote">Dios todopoderoso tenga misericordia de nosotros, perdone nuestros pecados y nos lleve a la vida eterna.</p>
+                        <p class="respuesta mb-5">Amén.</p>
+
+                        <p class="rubrica">Señor, ten piedad:</p>
+                        <p class="respuesta mb-5">Señor, ten piedad. Cristo, ten piedad. Señor, ten piedad.</p>
+
+                        <p class="rubrica">Gloria:</p>
+                        <p class="respuesta mb-5">Gloria a Dios en el cielo, y en la tierra paz a los hombres de buena voluntad. Por tu inmensa gloria te alabamos, te bendecimos, te adoramos, te glorificamos, te damos gracias, Señor Dios, Rey celestial, Dios Padre todopoderoso Señor, Hijo único, Jesucristo. Señor Dios, Cordero de Dios, Hijo del Padre; tú que quitas el pecado del mundo, ten piedad de nosotros; tú que quitas el pecado del mundo, atiende nuestra súplica; tú que estás sentado a la derecha del Padre, ten piedad de nosotros; porque sólo tú eres Santo, sólo tú Señor, sólo tú Altísimo, Jesucristo, con el Espíritu Santo en la gloria de Dios Padre. Amén.</p>
+
+                        <p class="rubrica">Oración Colecta:</p>
+                        <p class="sacerdote" id="oracion-colecta">Oremos...</p>
+                        <p class="respuesta">Amén.</p>
+                    </div>
+
+                    <!-- Separador sutil -->
+                    <div class="border-t border-gray-100 my-8 py-2"></div>
+                    
+                    <!-- Liturgia de la Palabra -->
+                    <div>
+                        <div class="mb-5">
+                            <h4 class="font-bold text-parroquia-maroon mb-1" id="cita-lectura1">Primera Lectura</h4>
+                            <p class="sacerdote mb-2" id="texto-lectura1">Texto de la lectura...</p>
+                            <p class="rubrica mt-2">Palabra de Dios.</p>
+                            <p class="respuesta">Te alabamos, Señor.</p>
+                        </div>
+
+                        <div class="mb-5 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <h4 class="font-bold text-parroquia-maroon mb-2" id="cita-salmo">Salmo Responsorial</h4>
+                            <p class="respuesta mb-2" id="respuesta-salmo">R. El Señor es mi pastor, nada me falta.</p>
+                            <p class="sacerdote whitespace-pre-line" id="texto-salmo">Texto del salmo...</p>
+                        </div>
+                        
+                        <div id="contenedor-lectura2" class="mb-5">
+                            <h4 class="font-bold text-parroquia-maroon mb-1" id="cita-lectura2">Segunda Lectura</h4>
+                            <p class="sacerdote mb-2" id="texto-lectura2">Texto de la lectura...</p>
+                            <p class="rubrica mt-2">Palabra de Dios.</p>
+                            <p class="respuesta">Te alabamos, Señor.</p>
+                        </div>
+
+                        <div class="mb-5">
+                            <p class="rubrica mb-1">Aclamación antes del Evangelio</p>
+                            <p class="respuesta" id="texto-aleluya">Aleluya, aleluya.</p>
+                        </div>
+
+                        <div class="mb-5">
+                            <h4 class="font-bold text-parroquia-maroon mb-1" id="cita-evangelio">Evangelio</h4>
+                            <p class="rubrica mb-1">El Señor esté con ustedes.</p>
+                            <p class="respuesta mb-2">Y con tu espíritu.</p>
+                            <p class="sacerdote mb-2" id="texto-evangelio">Texto de la lectura...</p>
+                            <p class="rubrica mt-2">Palabra del Señor.</p>
+                            <p class="respuesta">Gloria a ti, Señor Jesús.</p>
+                        </div>
+
+                        <div class="mt-8">
+                            <p class="rubrica mb-1">Profesión de Fe (Credo Niceno-Constantinopolitano)</p>
+                            <p class="respuesta text-sm">Creo en un solo Dios, Padre todopoderoso, Creador del cielo y de la tierra, de todo lo visible y lo invisible. Creo en un solo Señor, Jesucristo, Hijo único de Dios, nacido del Padre antes de todos los siglos: Dios de Dios, Luz de Luz, Dios verdadero de Dios verdadero, engendrado, no creado, de la misma naturaleza del Padre, por quien todo fue hecho; que por nosotros, los hombres, y por nuestra salvación bajó del cielo, y por obra del Espíritu Santo se encarnó de María, la Virgen, y se hizo hombre; y por nuestra causa fue crucificado en tiempos de Poncio Pilato; padeció y fue sepultado, y resucitó al tercer día, según las Escrituras, y subió al cielo, y está sentado a la derecha del Padre; y de nuevo vendrá con gloria para juzgar a vivos y muertos, y su reino no tendrá fin. Creo en el Espíritu Santo, Señor y dador de vida, que procede del Padre y del Hijo, que con el Padre y el Hijo recibe una misma adoración y gloria, y que habló por los profetas. Creo en la Iglesia, que es una, santa, católica y apostólica. Confieso que hay un solo bautismo para el perdón de los pecados. Espero la resurrección de los muertos y la vida del mundo futuro. Amén.</p>
+                        </div>
+                    </div>
+
+                    <!-- Separador sutil -->
+                    <div class="border-t border-gray-100 my-8 py-2"></div>
+                    
+                    <!-- Liturgia Eucarística -->
+                    <div>
+                        <p class="rubrica">Presentación de ofrendas:</p>
+                        <p class="sacerdote">Oren, hermanos, para que este sacrificio, mío y de ustedes, sea agradable a Dios, Padre todopoderoso.</p>
+                        <p class="respuesta mb-5 mt-1">El Señor reciba de tus manos este sacrificio, para alabanza y gloria de su nombre, para nuestro bien y el de toda su santa Iglesia.</p>
+
+                        <p class="rubrica">Oración sobre las Ofrendas:</p>
+                        <p class="sacerdote" id="oracion-ofrendas">Oremos...</p>
+                        <p class="respuesta mb-5 mt-1">Amén.</p>
+
+                        <p class="rubrica">Prefacio:</p>
+                        <p class="sacerdote">El Señor esté con ustedes.</p>
+                        <p class="respuesta mb-1">Y con tu espíritu.</p>
+                        <p class="sacerdote">Levantemos el corazón.</p>
+                        <p class="respuesta mb-1">Lo tenemos levantado hacia el Señor.</p>
+                        <p class="sacerdote">Demos gracias al Señor, nuestro Dios.</p>
+                        <p class="respuesta mb-5">Es justo y necesario.</p>
+
+                        <p class="rubrica">Santo:</p>
+                        <p class="respuesta mb-5">Santo, Santo, Santo es el Señor, Dios del Universo. Llenos están el cielo y la tierra de tu gloria. Hosanna en el cielo. Bendito el que viene en nombre del Señor. Hosanna en el cielo.</p>
+
+                        <p class="rubrica">Consagración (De rodillas):</p>
+                        <p class="sacerdote">Éste es el Sacramento de nuestra fe.</p>
+                        <p class="respuesta mb-5 mt-1">Anunciamos tu muerte, proclamamos tu resurrección. ¡Ven, Señor Jesús!</p>
+                        
+                        <p class="rubrica">Doxología Final (De pie):</p>
+                        <p class="sacerdote">Por Cristo, con él y en él...</p>
+                        <p class="respuesta">Amén.</p>
+                    </div>
+
+                    <!-- Separador sutil -->
+                    <div class="border-t border-gray-100 my-8 py-2"></div>
+                    
+                    <!-- Comunión y Cierre -->
+                    <div>
+                        <p class="rubrica">Padrenuestro:</p>
+                        <p class="respuesta mb-2">Padre nuestro, que estás en el cielo, santificado sea tu Nombre; venga a nosotros tu reino; hágase tu voluntad en la tierra como en el cielo. Danos hoy nuestro pan de cada día; perdona nuestras ofensas, como también nosotros perdonamos a los que nos ofenden; no nos dejes caer en la tentación, y líbranos del mal.</p>
+                        <p class="sacerdote">Líbranos de todos los males, Señor...</p>
+                        <p class="respuesta mb-5 mt-1">Tuyo es el reino, tuyo el poder y la gloria, por siempre, Señor.</p>
+
+                        <p class="rubrica">La Paz:</p>
+                        <p class="sacerdote">La paz del Señor esté siempre con ustedes.</p>
+                        <p class="respuesta mb-1">Y con tu espíritu.</p>
+                        <p class="sacerdote">Dense fraternalmente la paz.</p>
+                        <p class="rubrica mb-5 mt-1 text-gray-500 font-normal">(Todos se dan un saludo de paz)</p>
+
+                        <p class="rubrica">Fracción del Pan:</p>
+                        <p class="respuesta mb-5">Cordero de Dios, que quitas el pecado del mundo, ten piedad de nosotros.<br>Cordero de Dios, que quitas el pecado del mundo, ten piedad de nosotros.<br>Cordero de Dios, que quitas el pecado del mundo, danos la paz.</p>
+
+                        <p class="rubrica">Comunión (De rodillas):</p>
+                        <p class="sacerdote">Éste es el Cordero de Dios, que quita el pecado del mundo. Dichosos los invitados a la cena del Señor.</p>
+                        <p class="respuesta mb-5 mt-1">Señor, no soy digno de que entres en mi casa, pero una palabra tuya bastará para sanarme.</p>
+                        
+                        <p class="rubrica">Oración después de la Comunión:</p>
+                        <p class="sacerdote" id="oracion-postcomunion">Oremos...</p>
+                        <p class="respuesta mb-5 mt-1">Amén.</p>
+                        
+                        <div class="border-t border-gray-100 my-6"></div>
+                        
+                        <p class="rubrica">Bendición Final:</p>
+                        <p class="sacerdote">El Señor esté con ustedes.</p>
+                        <p class="respuesta mb-2">Y con tu espíritu.</p>
+                        <p class="sacerdote">La bendición de Dios todopoderoso, Padre, Hijo y Espíritu Santo, descienda sobre ustedes y los acompañe siempre.</p>
+                        <p class="respuesta mb-5 mt-1">Amén.</p>
+
+                        <p class="rubrica">Despedida:</p>
+                        <p class="sacerdote">La alegría del Señor sea nuestra fuerza, pueden ir en paz.</p>
+                        <p class="respuesta">Demos gracias a Dios.</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA 2: AVISOS                          -->
+        <!-- ========================================== -->
+        <section id="tab-avisos" class="tab-content max-w-2xl mx-auto pt-2">
+            <div id="contenedor-avisos" class="space-y-4">
+                <!-- Se inyectan dinámicamente con JS -->
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA 3: PARROQUIA                       -->
+        <!-- ========================================== -->
+        <section id="tab-parroquia" class="tab-content max-w-2xl mx-auto pt-2">
+            
+            <!-- Horarios idénticos a las capturas provistas -->
+            <div class="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 mb-5">
+                <div class="flex items-center gap-3 mb-5 border-b border-gray-50 pb-3">
+                    <i class="fa-regular fa-clock text-parroquia-gold text-xl"></i>
+                    <h3 class="text-parroquia-gold font-bold tracking-wide uppercase">Horarios de Celebraciones</h3>
+                </div>
+                
+                <div class="space-y-5 text-sm">
+                    <div>
+                        <p class="font-bold text-gray-900 mb-1.5 text-base">Misas de Precepto</p>
+                        <p class="mb-1"><span class="font-semibold text-gray-800">Sábado:</span> 7:00 pm</p>
+                        <p class="leading-relaxed"><span class="font-semibold text-gray-800">Domingo:</span> 9:30 am <span class="text-gray-500 italic uppercase text-[11px] font-medium tracking-wide">(Latín)</span> • 11:00 am • 12:00 pm <span class="text-gray-500 italic uppercase text-[11px] font-medium tracking-wide">(Niños)</span> • 1:15 pm <span class="text-gray-500 italic uppercase text-[11px] font-medium tracking-wide">(Con procesión)</span> • 6:00 pm</p>
+                    </div>
+                    
+                    <div class="border-t border-gray-50 pt-4">
+                        <p class="font-bold text-gray-900 mb-1.5 text-base">Misa Diaria</p>
+                        <p class="mb-1"><span class="font-semibold text-gray-800">Lunes, Martes y Jueves:</span> 7:00 pm</p>
+                        <p class="mb-1"><span class="font-semibold text-gray-800">Miércoles:</span> 12:00 pm</p>
+                        <p><span class="font-semibold text-gray-800">Viernes y Sábado:</span> 8:00 am</p>
+                    </div>
+
+                    <div class="border-t border-gray-50 pt-4">
+                        <p class="font-bold text-gray-900 mb-1.5 text-base">Rosario</p>
+                        <p class="mb-1">45 min antes de cada Misa</p>
+                        <p><span class="font-semibold text-gray-800">Domingos:</span> 5:15 pm</p>
+                    </div>
+
+                    <div class="border-t border-gray-50 pt-4">
+                        <p class="font-bold text-gray-900 mb-1.5 text-base">Hora Santa</p>
+                        <p><span class="font-semibold text-gray-800">Jueves:</span> 6:00 pm</p>
+                    </div>
+
+                    <div class="border-t border-gray-50 pt-4">
+                        <p class="font-bold text-gray-900 mb-1.5 text-base">Confesiones</p>
+                        <p class="mb-1"><span class="font-semibold text-gray-800">Jueves (durante Hora Santa):</span> 6:15 pm a 6:50 pm</p>
+                        <p><span class="font-semibold text-gray-800">Domingos:</span> Durante las misas de 11:00 am y 1:15 pm</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contacto de la Oficina Parroquial -->
+            <div class="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 mb-5">
+                <div class="flex items-center gap-3 mb-5 border-b border-gray-50 pb-3">
+                    <i class="fa-solid fa-phone text-parroquia-gold text-lg"></i>
+                    <h3 class="text-parroquia-gold font-bold tracking-wide uppercase">Contacto Oficina Parroquial</h3>
+                </div>
+                
+                <div class="space-y-5 text-sm">
+                    <div class="flex gap-4 items-start">
+                        <i class="fa-solid fa-phone text-parroquia-maroon mt-1"></i>
+                        <div>
+                            <p class="font-bold text-gray-900 mb-0.5 text-base">Teléfono Oficina:</p>
+                            <a href="tel:8183331004" class="text-parroquia-maroon underline font-medium text-base">81 8333 1004</a>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 items-start">
+                        <i class="fa-brands fa-whatsapp text-parroquia-maroon mt-1 text-lg"></i>
+                        <div>
+                            <p class="font-bold text-gray-900 mb-0.5 text-base">WhatsApp:</p>
+                            <a href="https://wa.me/528121960598" class="text-parroquia-maroon underline font-medium text-base">81 2196 0598</a>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 items-start">
+                        <i class="fa-solid fa-location-dot text-parroquia-maroon mt-1 ml-0.5"></i>
+                        <div>
+                            <p class="font-bold text-gray-900 mb-1 text-base">Dirección:</p>
+                            <p class="text-gray-600 leading-relaxed">Calle San Jerónimo #806, Colonia San Jerónimo,<br>Monterrey, N.L., México.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- MENÚ DE NAVEGACIÓN INFERIOR (TABS) -->
+    <nav class="bg-white border-t border-gray-100 px-2 py-1 pb-5 sticky bottom-0 z-10 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)]">
+        <ul class="flex justify-around items-center max-w-md mx-auto">
+            <li class="flex-1">
+                <button onclick="switchTab('misal', this)" class="nav-btn w-full flex flex-col items-center justify-center gap-1.5 py-2 text-parroquia-maroon transition-colors duration-200">
+                    <i class="fa-solid fa-book-open text-[22px]"></i>
+                    <span class="text-[11px] font-bold tracking-wide">Misal</span>
+                </button>
+            </li>
+            <li class="flex-1">
+                <button onclick="switchTab('avisos', this)" class="nav-btn w-full flex flex-col items-center justify-center gap-1.5 py-2 text-gray-400 hover:text-parroquia-maroon/70 transition-colors duration-200">
+                    <i class="fa-solid fa-bullhorn text-[22px]"></i>
+                    <span class="text-[11px] font-bold tracking-wide">Avisos</span>
+                </button>
+            </li>
+            <li class="flex-1">
+                <button onclick="switchTab('parroquia', this)" class="nav-btn w-full flex flex-col items-center justify-center gap-1.5 py-2 text-gray-400 hover:text-parroquia-maroon/70 transition-colors duration-200">
+                    <i class="fa-solid fa-church text-[22px]"></i>
+                    <span class="text-[11px] font-bold tracking-wide">Parroquia</span>
+                </button>
+            </li>
+        </ul>
+    </nav>
+
+    <script>
+        // =========================================================================
+        // 🟢 DATOS COMPLETOS E ÍNTEGROS DEL MES: AGOSTO 2026 (CICLO A) 🟢
+        // =========================================================================
+        
+        const DATOS_DEL_MES = {
+            
+            avisos: [
+                {
+                    titulo: "Inscripciones al Catecismo (Ciclo 2026-2027)",
+                    descripcion: "Iniciamos el periodo de inscripciones para Primera Comunión y Confirmación para niños y jóvenes. Estaremos registrando todos los domingos de agosto al término de las misas en las mesas del atrio. Favor de traer copia de acta de bautismo.",
+                    importante: true
+                },
+                {
+                    titulo: "Solemnidad de la Asunción de la Virgen",
+                    descripcion: "El próximo sábado 15 de agosto es fiesta de precepto por la Solemnidad de la Asunción de la Santísima Virgen María. Tendremos misas solemnes en los horarios ordinarios: 8:00 am y 7:00 pm.",
+                    importante: false
+                },
+                {
+                    titulo: "Colecta para el Seminario de Monterrey",
+                    descripcion: "Les recordamos que el domingo 23 de agosto se llevará a cabo la colecta anual destinada al sostenimiento y formación de nuestros futuros sacerdotes en el Seminario Arquidiocesano. Agradecemos infinitamente su generosidad.",
+                    importante: false
+                }
+            ],
+
+            misas: {
+                "dom_2_ago": {
+                    etiqueta_select: "Dom 02 Ago - XVIII Tiempo Ordinario",
+                    nombre: "XVIII Domingo del Tiempo Ordinario",
+                    color: "bg-green-600",
+                    nombre_color: "Tiempo Ordinario",
+                    oracion_colecta: "Acércate, Señor, a tus siervos y compadécete de los que te suplican, para que a quienes se glorían de tenerte por creador y por guía, les restaures su perfección y se la conserves. Por nuestro Señor Jesucristo.",
+                    lectura1_cita: "Lectura del libro del profeta Isaías (55, 1-3)",
+                    lectura1_texto: "Esto dice el Señor: «Todos los que tengan sed, vengan a beber agua; los que no tengan dinero, vengan, consigan trigo y coman; vengan y beban vino y leche, sin pagar y de balde. ¿Por qué gastar el dinero en lo que no alimenta, y el salario en lo que no da hartura? Escúchenme atentos y comerán bien, y saborearán platillos sustanciosos. Inclinen su oído y vengan a mí; escúchenme y vivirán. Sellaré con ustedes una alianza eterna: las promesas firmes hechas a David».",
+                    salmo_cita: "Salmo 144",
+                    salmo_respuesta: "R. Abres tú la mano, Señor, y nos sacias de favores.",
+                    salmo_texto: "El Señor es compasivo y misericordioso,\nlento para enojarse y generoso para perdonar.\nEl Señor es bueno con todos\ny cariñoso con todas sus criaturas. R.\n\nLos ojos de todos están fijos en ti\ny tú les das la comida a su tiempo.\nAbres tú la mano\ny sacias de favores a todo ser viviente. R.\n\nEl Señor es justo en todos sus caminos\ny bondadoso en todas sus acciones.\nEl Señor está cerca de todos los que lo invocan,\nde todos los que lo invocan sinceramente. R.",
+                    lectura2_cita: "Lectura de la carta del apóstol san Pablo a los romanos (8, 35. 37-39)",
+                    lectura2_texto: "Hermanos: ¿Quién nos apartará del amor de Cristo? ¿La tribulación, la angustia, la persecución, el hambre, la desnudez, el peligro, la espada? En todo esto salimos vencedores gracias a aquel que nos amó. Tengo la certeza de que ni la muerte ni la vida, ni los ángeles ni los principados, ni lo presente ni lo futuro, ni las potestades, ni la altura ni el abismo, ni otra criatura alguna podrá apartarnos del amor de Dios manifestado en Cristo Jesús, Señor nuestro.",
+                    aleluya: "Aleluya, aleluya. No sólo de pan vive el hombre, sino de toda palabra que sale de la boca de Dios. Aleluya.",
+                    evangelio_cita: "Lectura del santo evangelio según san Mateo (14, 13-21)",
+                    evangelio_texto: "En aquel tiempo, al enterarse Jesús de la muerte de Juan el Bautista, subió a una barca y se dirigió a un lugar apartado y solitario. Al saberlo la gente, lo siguió por tierra desde los pueblos. Cuando Jesús desembarcó, vio una gran muchedumbre, sintió compasión de ellos y curó a los enfermos. Al atardecer se le acercaron sus discípulos y le dijeron: «Este lugar está deshabitado y ya es tarde; despide a la multitud para que vayan a las aldeas y se compren comida». Jesús les contestó: «No hace falta que vayan; denles ustedes de comer». Ellos le respondieron: «No tenemos aquí más que cinco panes y dos pescados». Él les dijo: «Tráiganmelos». Mandó entonces a la gente que se sentara sobre el pasto; tomó los cinco panes y los dos pescados, y mirando al cielo, pronunció la bendición, partió los panes y se los dio a los discípulos para que los distribuyeran a la gente. Todos comieron hasta saciarse, y con los pedazos que sobraron llenaron doce canastas. Los que comieron fueron unos cinco mil hombres, sin contar a las mujeres y a los niños.",
+                    oracion_ofrendas: "Santifica, Señor, por tu piedad, estos dones, y al recibir en oblación este sacrificio espiritual, conviértenos a nosotros mismos en una perenne ofrenda para ti. Por Jesucristo, nuestro Señor.",
+                    oracion_postcomunion: "Acompaña, Señor, con tu protección constante a quienes has renovado con este pan celestial, y ya que no dejas de alimentarnos, haznos dignos de la redención eterna. Por Jesucristo, nuestro Señor."
+                },
+                "dom_9_ago": {
+                    etiqueta_select: "Dom 09 Ago - XIX Tiempo Ordinario",
+                    nombre: "XIX Domingo del Tiempo Ordinario",
+                    color: "bg-green-600",
+                    nombre_color: "Tiempo Ordinario",
+                    oracion_colecta: "Dios todopoderoso y eterno, a quien, enseñados por el Espíritu Santo, nos atrevemos a llamar Padre, haz crecer en nuestros corazones el espíritu de adopción filial, para que merezcamos entrar en la herencia que nos tienes prometida.",
+                    lectura1_cita: "Lectura del primer libro de los Reyes (19, 9. 11-13)",
+                    lectura1_texto: "En aquellos días, al llegar Elías al monte de Dios, el Horeb, entró en una cueva y pasó la noche allí. El Señor le dijo: «Sal y quédate de pie en el monte, delante del Señor». En esto pasó el Señor. Un viento fuerte y violento sopló, rompiendo los montes y partiendo las rocas delante del Señor, pero el Señor no estaba en el viento. Después del viento hubo un terremoto, pero el Señor no estaba en el terremoto. Después del terremoto hubo un fuego, pero el Señor no estaba en el fuego. Después del fuego se escuchó el susurro de una brisa suave. Al oírlo, Elías se cubrió el rostro con el manto, salió y se quedó de pie a la entrada de la cueva.",
+                    salmo_cita: "Salmo 84",
+                    salmo_respuesta: "R. Muéstranos, Señor, tu misericordia y danos tu salvación.",
+                    salmo_texto: "Escucharé las palabras del Señor,\npalabras de paz para su pueblo santo.\nLa salvación está cerca de sus fieles,\ny la gloria habitará en nuestra tierra. R.\n\nLa misericordia y la verdad se encontrarán,\nla justicia y la paz se besarán;\nla verdad brotará de la tierra\ny la justicia mirará desde el cielo. R.\n\nEl Señor mismo nos dará la lluvia\ny nuestra tierra producirá su cosecha.\nLa justicia caminará delante de él\ny la paz seguirá sus pasos. R.",
+                    lectura2_cita: "Lectura de la carta del apóstol san Pablo a los romanos (9, 1-5)",
+                    lectura2_texto: "Hermanos: Digo la verdad en Cristo, no miento; mi conciencia me lo atestigua en el Espíritu Santo: siento una gran tristeza y un dolor continuo en mi corazón. Hasta desearía ser yo mismo un proscrito, separado de Cristo, por el bien de mis hermanos, los de mi propia raza. Ellos son israelitas, de ellos es la adopción filial, la gloria, las alianzas, la ley, el culto y las promesas. De ellos son los patriarcas, y de ellos procede Cristo, según la carne, el cual está por encima de todo y es Dios bendito por los siglos. Amén.",
+                    aleluya: "Aleluya, aleluya. Confío en el Señor, mi alma espera en su palabra. Aleluya.",
+                    evangelio_cita: "Lectura del santo evangelio según san Mateo (14, 22-33)",
+                    evangelio_texto: "Después de que se sació la gente, Jesús apremió a sus discípulos a que subieran a la barca y se le adelantaran a la otra orilla, mientras él despedía a la multitud. Después de despedir a la gente, subió al monte a solas para orar. Al llegar la noche, estaba allí solo. Mientras tanto, la barca iba ya muy lejos de tierra, sacudida por las olas, porque el viento era contrario. De madrugada, Jesús fue hacia ellos caminando sobre las aguas. Los discípulos, viéndolo andar sobre el agua, se asustaron y gritaron de miedo, pensando que era un fantasma. Jesús les dijo en seguida: «¡Ánimo! Soy yo, no tengan miedo». Pedro le contestó: «Señor, si eres tú, mándame ir a ti caminando sobre las aguas». Él le dijo: «Ven». Pedro bajó de la barca y comenzó a caminar sobre el agua para ir hacia Jesús; pero, al sentir la fuerza del viento, le dio miedo, comenzó a hundirse y gritó: «¡Señor, sálvame!». En seguida Jesús extendió la mano, lo agarró y le dijo: «Hombre de poca fe, ¿por qué dudaste?». Subieron a la barca y se calmó el viento. Los que estaban en la barca se postraron ante él diciendo: «Verdaderamente tú eres el Hijo de Dios».",
+                    oracion_ofrendas: "Acepta, Señor, los dones que te presentamos, que tú mismo nos has dado, para que por el poder de tu gracia estos santos misterios santifiquen nuestra vida y nos conduzcan a la alegría eterna. Por Jesucristo, nuestro Señor.",
+                    oracion_postcomunion: "La comunión de tus sacramentos nos salve, Señor, y nos confirme en la luz de tu verdad. Por Jesucristo, nuestro Señor."
+                },
+                "dom_16_ago": {
+                    etiqueta_select: "Dom 16 Ago - XX Tiempo Ordinario",
+                    nombre: "XX Domingo del Tiempo Ordinario",
+                    color: "bg-green-600",
+                    nombre_color: "Tiempo Ordinario",
+                    oracion_colecta: "Dios nuestro, que has preparado bienes invisibles para los que te aman, infunde en nuestros corazones el anhelo de amarte, para que amándote en todo y sobre todas las cosas, consigamos tus promesas, que superan todo deseo.",
+                    lectura1_cita: "Lectura del libro del profeta Isaías (56, 1. 6-7)",
+                    lectura1_texto: "Esto dice el Señor: «Velen por el derecho y practiquen la justicia, porque mi salvación está para llegar y mi justicia se va a manifestar. A los extranjeros que se han adherido al Señor para servirlo, para amar el nombre del Señor y ser sus servidores, a todos los que guardan el sábado sin profanarlo y se mantienen firmes en mi alianza, los llevaré a mi monte santo y los llenaré de alegría en mi casa de oración. Sus holocaustos y sus sacrificios serán agradables sobre mi altar, porque mi casa será llamada casa de oración para todos los pueblos».",
+                    salmo_cita: "Salmo 66",
+                    salmo_respuesta: "R. Que te alaben, Señor, todos los pueblos.",
+                    salmo_texto: "Ten piedad de nosotros y bendícenos;\nvuelve, Señor, tus ojos a nosotros.\nQue se conozca en la tierra tu camino,\ny en todos los pueblos tu salvación. R.\n\nQue las naciones canten de alegría,\nporque gobiernas a los pueblos con justicia\ny riges a las naciones de la tierra. R.\n\nQue te alaben, Señor, todos los pueblos.\nQue la tierra dé su fruto,\nque nos bendiga Dios, nuestro Dios,\ny que lo teman hasta los confines del mundo. R.",
+                    lectura2_cita: "Lectura de la carta del apóstol san Pablo a los romanos (11, 13-15. 29-32)",
+                    lectura2_texto: "Hermanos: A ustedes, los que no son judíos, les digo: Puesto que yo soy el apóstol de los no judíos, hago honor a mi ministerio, por ver si provoco los celos de los de mi propia raza y logro salvar a algunos de ellos. Porque si su descarte ha sido la reconciliación del mundo, ¿qué no será su readmisión sino un volver de la muerte a la vida? Pues los dones y el llamado de Dios son irrevocables. Así como ustedes en otro tiempo eran rebeldes a Dios, pero ahora han alcanzado misericordia gracias a la rebeldía de ellos, así también ellos ahora son rebeldes con ocasión de la misericordia concedida a ustedes, para que ellos también alcancen misericordia. Dios los encerró a todos en la rebeldía para tener misericordia de todos.",
+                    aleluya: "Aleluya, aleluya. Jesús proclamaba el Evangelio del reino y curaba todas las enfermedades del pueblo. Aleluya.",
+                    evangelio_cita: "Lectura del santo evangelio según san Mateo (15, 21-28)",
+                    evangelio_texto: "En aquel tiempo, Jesús se retiró a la comarca de Tiro y Sidón. Una mujer cananea, que venía de aquella región, comenzó a gritarle: «¡Señor, Hijo de David, ten compasión de mí! Mi hija está terriblemente atormentada por un demonio». Jesús no le contestó ni una palabra. Entonces se acercaron sus discípulos y le rogaron: «Atiéndela, porque viene gritando detrás de nosotros». Él contestó: «No he sido enviado sino a las ovejas perdidas de la casa de Israel». Ella se acercó, se postró ante él y le dijo: «¡Señor, ayúdame!». Él le respondió: «No está bien quitarles el pan a los hijos para echárselo a los perritos». Ella replicó: «Es verdad, Señor; pero también los perritos comen de las migajas que caen de la mesa de sus dueños». Entonces Jesús le contestó: «Mujer, ¡qué grande es tu fe! Que se cumpla lo que deseas». Y en aquel mismo instante quedó curada su hija.",
+                    oracion_ofrendas: "Recibe, Señor, nuestros dones, y concédenos que este sacrificio, fuente de salvación, sea también para nosotros y para todos prenda de vida eterna. Por Jesucristo, nuestro Señor.",
+                    oracion_postcomunion: "Unidos a Cristo por este sacramento, imploramos, Señor, tu misericordia, para que, transformados en la tierra a su imagen, merezcamos compartir con él la gloria en el cielo. Él, que vive y reina por los siglos de los siglos."
+                },
+                "dom_23_ago": {
+                    etiqueta_select: "Dom 23 Ago - XXI Tiempo Ordinario",
+                    nombre: "XXI Domingo del Tiempo Ordinario",
+                    color: "bg-green-600",
+                    nombre_color: "Tiempo Ordinario",
+                    oracion_colecta: "Señor Dios, que unes en un mismo sentir los corazones de tus fieles, impulsa a tu pueblo a amar lo que mandas y a desear lo que prometes, para que, en medio de la inestabilidad de este mundo, estén firmemente anclados nuestros corazones donde se halla la verdadera alegría.",
+                    lectura1_cita: "Lectura del libro del profeta Isaías (22, 19-23)",
+                    lectura1_texto: "Esto dice el Señor a Sobná, mayordomo de palacio: «Te arrojaré de tu puesto y te destituiré de tu cargo. Aquel día llamaré a mi siervo, a Eliaquim, hijo de Helcías; lo vestiré con tu túnica, lo ceñiré con tu banda y le entregaré tus poderes. Él será un padre para los habitantes de Jerusalén y para la casa de Judá. Pondré la llave de la casa de David sobre su hombro: lo que él abra nadie lo cerrará, y lo que él cierre nadie lo abrirá. Lo clavaré como una estaca en un lugar firme, y será un trono de gloria para la casa de su padre».",
+                    salmo_cita: "Salmo 137",
+                    salmo_respuesta: "R. Señor, tu amor perdura eternamente.",
+                    salmo_texto: "Te doy gracias, Señor, de todo corazón,\nporque has escuchado las palabras de mi boca.\nEn presencia de los ángeles te cantaré;\nme postraré hacia tu santo templo. R.\n\nTe daré gracias por tu misericordia y tu fidelidad,\nporque has engrandecido tu nombre y tu promesa por encima de todo.\nEl día que te invoqué me escuchaste,\nmultiplicaste la fuerza en mi alma. R.\n\nEl Señor es excelso, pero mira al humilde,\ny al soberbio lo conoce de lejos.\nSeñor, tu amor perdura eternamente;\nno abandones la obra de tus manos. R.",
+                    lectura2_cita: "Lectura de la carta del apóstol san Pablo a los romanos (11, 33-36)",
+                    lectura2_texto: "¡Qué abismo de riqueza, de sabiduría y de ciencia el de Dios! ¡Qué insondables son sus juicios e inescrutables sus caminos! En efecto, ¿quién conoció la mente del Señor? ¿O quién fue su consejero? ¿O quién le dio primero para que tenga derecho a ser recompensado? Porque de él, por él y para él son todas las cosas. A él la gloria por los siglos de los siglos. Amén.",
+                    aleluya: "Aleluya, aleluya. Tú eres Pedro y sobre esta piedra edificaré mi Iglesia, y los poderes del infierno no prevalecerán sobre ella. Aleluya.",
+                    evangelio_cita: "Lectura del santo evangelio según san Mateo (16, 13-20)",
+                    evangelio_texto: "En aquel tiempo, al llegar Jesús a la región de Cesarea de Filipo, preguntó a sus discípulos: «¿Quién dice la gente que es el Hijo del hombre?». Ellos contestaron: «Unos dicen que Juan el Bautista; otros, que Elías; y otros, que Jeremías o alguno de los profetas». Él les preguntó: «Y ustedes, ¿quién dicen que soy yo?». Simón Pedro tomó la palabra y dijo: «Tú eres el Mesías, el Hijo del Dios vivo». Jesús le respondió: «¡Dichoso tú, Simón, hijo de Juan!, porque esto no te lo ha revelado ningún hombre, sino mi Padre que está en los cielos. Y yo te digo que tú eres Pedro, y sobre esta piedra edificaré mi Iglesia, y los poderes del infierno no prevalecerán contra ella. Te daré las llaves del reino de los cielos; lo que ates en la tierra quedará atado en los cielos, y lo que desates en la tierra quedará desatado en los cielos». Entonces mandó estrictamente a los discípulos que no dijeran a nadie que él era el Mesías.",
+                    oracion_ofrendas: "Señor, que por el único sacrificio de tu Hijo te has adquirido un pueblo de adopción, concédenos benignamente el don de la unidad y de la paz en tu Iglesia. Por Jesucristo, nuestro Señor.",
+                    oracion_postcomunion: "Te rogamos, Señor, que la obra salvadora de tu misericordia fructifique plenamente en nosotros, y haz que, con la ayuda continua de tu gracia, de tal manera te agrademos, que en todo cumplamos tu voluntad. Por Jesucristo, nuestro Señor."
+                },
+                "dom_30_ago": {
+                    etiqueta_select: "Dom 30 Ago - XXII Tiempo Ordinario",
+                    nombre: "XXII Domingo del Tiempo Ordinario",
+                    color: "bg-green-600",
+                    nombre_color: "Tiempo Ordinario",
+                    oracion_colecta: "Dios del universo, de quien procede todo lo que es bueno y perfecto, infunde en nuestros corazones el amor de tu nombre, para que, haciendo más religiosa nuestra vida, aumentes en nosotros el bien y, con solicitud amorosa, lo conserves. Por nuestro Señor Jesucristo.",
+                    lectura1_cita: "Lectura del libro del profeta Jeremías (20, 7-9)",
+                    lectura1_texto: "Me sedujiste, Señor, y me dejé seducir; fuiste más fuerte que yo y me venciste. He sido el hazmerreír de todos cada día; todos se burlan de mí. Cada vez que hablo tengo que gritar, anunciando violencia y destrucción. La palabra del Señor se ha convertido para mí en oprobio y burla constantes. Me decía a mí mismo: «No me acordará más de él, no hablaré más en su nombre»; pero sentía en mi pecho como un fuego ardiente, encerrado en mis huesos; hacía esfuerzos por contenerlo, pero no podía.",
+                    salmo_cita: "Salmo 62",
+                    salmo_respuesta: "R. Mi alma está sedienta de ti, Señor, Dios mío.",
+                    salmo_texto: "Señor, tú eres mi Dios, a ti te busco;\nde ti sedienta está mi alma.\nMi cuerpo tiene ansia de ti,\ncomo tierra reseca, agostada, sin agua. R.\n\nPor eso te contemplo en el santuario,\npara ver tu fuerza y tu gloria.\nTu gracia vale más que la vida;\nmis labios te alabarán. R.\n\nToda mi vida te bendeciré\ny levantaré mis manos invocándote.\nMe saciaré como de manjares exquisitos,\ny mis labios te alabarán con cantos de júbilo. R.\n\nPorque tú fuiste mi auxilio,\ny a la sombra de tus alas canto de alegría.\nMi alma está unida a ti\ny tu diestra me sostiene. R.",
+                    lectura2_cita: "Lectura de la carta del apóstol san Pablo a los romanos (12, 1-2)",
+                    lectura2_texto: "Hermanos: Por la misericordia de Dios, los exhorto a presentar sus cuerpos como una ofrenda viva, santa y agradable a Dios; éste es su culto espiritual. No se amolden al mundo actual, sino transfórmense mediante la renovación de su mente, para que puedan distinguir cuál es la voluntad de Dios: lo bueno, lo agradable y lo perfecto.",
+                    aleluya: "Aleluya, aleluya. Que el Padre de nuestro Señor Jesucristo ilumine nuestra mente para que podamos comprender cuál es la esperanza que nos da su llamamiento. Aleluya.",
+                    evangelio_cita: "Lectura del santo evangelio según san Mateo (16, 21-27)",
+                    evangelio_texto: "En aquel tiempo, Jesús comenzó a manifestar a sus discípulos que tenía que ir a Jerusalén y sufrir mucho por causa de los ancianos, de los jefes de los sacerdotes y de los escribas, y que tenía que ser ejecutado y resucitar al tercer día. Pedro lo tomó aparte y comenzó a reprenderlo, diciendo: «¡Lejos de ti, Señor! ¡De ningún modo te sucederá eso!». Pero Jesús se volvió y dijo a Pedro: «¡Ponte detrás de mí, Satanás! Eres un obstáculo en mi camino, porque tus pensamientos no son los de Dios, sino los de los hombres». Entonces Jesús dijo a sus discípulos: «El que quiera venir conmigo, que renuncie a sí mismo, que tome su cruz y me siga. Porque el que quiera salvar su vida la perderá; pero el que la pierda por mí la encontrará. ¿De qué le sirve a uno ganar el mundo entero si pierde su vida? ¿O qué podrá dar uno a cambio de su vida? Porque el Hijo del hombre vendrá con la gloria de su Padre, acompañado de sus ángeles, y entonces recompensará a cada uno según sus obras».",
+                    oracion_ofrendas: "Que esta ofrenda sagrada, Señor, nos traiga siempre tu bendición salvadora, para que dé fruto en nosotros lo que realiza el misterio. Por Jesucristo, nuestro Señor.",
+                    oracion_postcomunion: "Saciados con el pan celestial, te rogamos, Señor, que esta comunión nos llene de tu caridad y nos impulse a servirte en nuestros hermanos. Por Jesucristo, nuestro Señor."
+                }
+            }
+        };
+
+        // --- Lógica de Pestañas ---
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-parroquia-maroon');
+                btn.classList.add('text-gray-400');
+            });
+            
+            document.getElementById('tab-' + tabId).classList.add('active');
+            
+            btnElement.classList.remove('text-gray-400', 'hover:text-parroquia-maroon/70');
+            btnElement.classList.add('text-parroquia-maroon');
+            
+            document.querySelector('main').scrollTo(0, 0);
+        }
+
+        // --- Cargar Avisos ---
+        function cargarAvisos() {
+            const contenedor = document.getElementById('contenedor-avisos');
+            contenedor.innerHTML = ''; 
+            
+            if(DATOS_DEL_MES.avisos.length === 0) {
+                contenedor.innerHTML = '<p class="text-gray-500 text-center py-8">No hay avisos por el momento.</p>';
+                return;
+            }
+
+            DATOS_DEL_MES.avisos.forEach(aviso => {
+                let badgeImportante = aviso.importante ? `<span class="bg-red-50 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-widest ml-2 border border-red-100">Importante</span>` : '';
+                
+                let html = `
+                <div class="bg-white rounded-2xl p-5 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-gray-100 relative overflow-hidden">
+                    ${aviso.importante ? '<div class="absolute top-0 left-0 w-1 h-full bg-parroquia-maroon"></div>' : ''}
+                    <h3 class="font-bold text-gray-900 text-[17px] leading-tight flex items-center flex-wrap gap-y-2 mb-2">
+                        ${aviso.titulo} ${badgeImportante}
+                    </h3>
+                    <p class="text-[14px] text-gray-600 leading-relaxed">${aviso.descripcion}</p>
+                </div>
+                `;
+                contenedor.innerHTML += html;
+            });
+        }
+
+        // --- Inicializar Selector de Misas ---
+        function inicializarSelector() {
+            const select = document.getElementById('fecha-misal');
+            select.innerHTML = '';
+            
+            for (const [id, misa] of Object.entries(DATOS_DEL_MES.misas)) {
+                let option = document.createElement('option');
+                option.value = id;
+                option.textContent = misa.etiqueta_select;
+                select.appendChild(option);
+            }
+            actualizarMisa();
+        }
+
+        // --- Actualizar Textos del Misal ---
+        function actualizarMisa() {
+            const select = document.getElementById('fecha-misal');
+            const idMisa = select.value;
+            const misa = DATOS_DEL_MES.misas[idMisa];
+
+            if (misa) {
+                document.getElementById('titulo-misa').textContent = misa.nombre;
+                document.getElementById('color-liturgico').className = `w-3 h-3 rounded-full shadow-inner ${misa.color}`;
+                document.getElementById('texto-color').textContent = misa.nombre_color;
+
+                document.getElementById('oracion-colecta').innerHTML = misa.oracion_colecta;
+                
+                document.getElementById('cita-lectura1').innerHTML = misa.lectura1_cita;
+                document.getElementById('texto-lectura1').innerHTML = misa.lectura1_texto;
+                
+                document.getElementById('cita-salmo').innerHTML = misa.salmo_cita;
+                document.getElementById('respuesta-salmo').innerHTML = misa.salmo_respuesta;
+                document.getElementById('texto-salmo').innerHTML = misa.salmo_texto;
+
+                const contLectura2 = document.getElementById('contenedor-lectura2');
+                if(misa.lectura2_cita) {
+                    contLectura2.style.display = 'block';
+                    document.getElementById('cita-lectura2').innerHTML = misa.lectura2_cita;
+                    document.getElementById('texto-lectura2').innerHTML = misa.lectura2_texto;
+                } else {
+                    contLectura2.style.display = 'none';
+                }
+
+                const elAleluya = document.getElementById('texto-aleluya');
+                if(misa.aleluya) {
+                    elAleluya.innerHTML = misa.aleluya;
+                } else {
+                    elAleluya.innerHTML = "Aleluya, aleluya.";
+                }
+
+                document.getElementById('cita-evangelio').innerHTML = misa.evangelio_cita;
+                document.getElementById('texto-evangelio').innerHTML = misa.evangelio_texto;
+                
+                document.getElementById('oracion-ofrendas').innerHTML = misa.oracion_ofrendas;
+                document.getElementById('oracion-postcomunion').innerHTML = misa.oracion_postcomunion;
+            }
+        }
+
+        // --- Iniciar App ---
+        window.onload = function() {
+            cargarAvisos();
+            inicializarSelector();
+        };
+    </script>
+</body>
+</html>
