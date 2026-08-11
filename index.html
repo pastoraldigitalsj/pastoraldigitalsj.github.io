@@ -83,20 +83,18 @@
 <body class="bg-parroquia-bg text-parroquia-text font-sans h-screen flex flex-col overflow-hidden">
 
     <!-- ENCABEZADO FIJO -->
-    <header class="bg-parroquia-maroon shadow-md z-10 px-4 py-3 sticky top-0 flex flex-row items-center justify-between gap-3">
-        <!-- Logo de la Parroquia a la izquierda -->
-        <div class="flex-shrink-0">
-            <img src="Icono/LogoApp.png" alt="Logo Parroquia" class="w-14 h-14 object-cover rounded shadow-sm" onerror="this.src='https://placehold.co/100x100/B78C3D/FFFFFF?text=Logo'">
+    <header class="bg-parroquia-maroon shadow-md z-10 px-4 py-3.5 sticky top-0 flex flex-row items-center justify-between gap-4">
+        <!-- Logo Horizontal de la Parroquia a la izquierda -->
+        <div class="flex-shrink-0 max-w-[70%] flex items-center">
+            <!-- Altura h-10 (40px) en móviles pequeños y h-12 (48px) en móviles un poco más grandes. Ancho automático para no deformar. -->
+            <img src="Icono/LogoApp.png" alt="Logo Parroquia" class="h-10 sm:h-12 w-auto object-contain" onerror="this.src='https://placehold.co/300x100/531717/B78C3D?text=Logo+Parroquia'">
         </div>
         
-        <!-- Títulos alineados a la derecha -->
-        <div class="flex-1 flex flex-col items-end justify-center">
-            <h1 class="text-parroquia-gold font-bold text-[22px] text-right leading-tight uppercase tracking-wide">
+        <!-- Título MISAL alineado a la derecha -->
+        <div class="flex-1 flex items-center justify-end">
+            <h1 class="text-parroquia-gold font-bold text-2xl text-right leading-tight uppercase tracking-wide">
                 MISAL
             </h1>
-            <p class="text-xs text-white text-right font-light tracking-widest mt-0.5">
-                Parroquia de Nuestra Señora del Carmen San Jerónimo
-            </p>
         </div>
     </header>
 
